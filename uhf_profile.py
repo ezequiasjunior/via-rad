@@ -14,18 +14,18 @@ y = np.array(df['h(m)'])
 k = 4/3
 f = 5 #GHz
 htx = 30
-hrx = 50
+hrx = 30
 #
 
 hmax = max(y)
-hmin = min(y)
+hmin = 450#min(y)
 print('h max, h min: ', hmax, hmin)
 dist = x[-1] - x[0] #[km]
 print('dist: ',dist)
 R = k * 6371 #[km]
 
 # dh 10% h max
-dh = int(0.1*hmax)
+dh = 50#int(0.1*hmax)
 print('espaço entre curvas: ',dh)
 # número de arcos
 m = 1 + (hmax - hmin)/dh

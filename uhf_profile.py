@@ -38,12 +38,12 @@ yaux = (-x**2 + x*dist)/(2*R*1e-3)
 curvas = np.zeros((dy.size, x.size))
 
 for i in range(dy.size): 
-    curvas[i, :] = yaux + dy[i] 
+    curvas[i, :] = np.round(yaux) + dy[i] 
 
 print(curvas.shape)
 
 # alturas corrigidas [km]: 
-Y = (-x**2 + x*dist)/(2*R*1e-3) + y
+Y = np.round(yaux) + y
 print(Y.shape)
 
 # linha de visada e fresnel:
@@ -76,5 +76,14 @@ with plt.style.context('fast', True):
     # plt.plot(x, Lv1, 'r--')
     # plt.plot(x,y)
     plt.savefig('perfil-test')
+
+#%%
+# estranhamente n bateu com a tabela
+print(Y)
+#%%
+print(curvas[0]) # bateu com a tabela
+
+#%%
+Lv
 
 #%%

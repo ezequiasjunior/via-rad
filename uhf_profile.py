@@ -2,49 +2,79 @@
 #%%
 import numpy as np
 import matplotlib.pyplot as plt
+import matplotlib as mpl
 import pandas as pd
 
 #%%
-ddata = np.load('dist_igatemi_farol.npy')
-hdata = np.load('alturas_igatemi_farol.npy')
-fresnel1 = np.load('fresneltop.npy')
-fresnel2 = np.load('fresnelbot.npy')
-los = np.load('los.npy')
-#%%
-with plt.style.context('ggplot', True):
-    plt.figure('perfil-topografico')
-    plt.title('Perfil Toporáfico')
-    plt.xlabel('Distância [km]')
-    plt.ylabel('Altitude [m]')
-    plt.plot(ddata, hdata)
-    plt.plot(ddata, fresnel1, '-.')
-    plt.plot(ddata, fresnel2, '-.')
-    plt.plot(ddata, los)
-    plt.savefig('perfil-topografico.png')
-    plt.show()
-
-#%%
 df = pd.read_csv('tabela_radio.csv')
-
-k = 1.333316759
-f = 1e9
-
-htx, hrx = 38, 38
-
-
 x = np.array(df['x(km)'])
 y = np.array(df['h(m)'])
 
+#
+k = 4/3
+f = 5 #GHz
+htx = 30
+hrx = 50
+#
+
 hmax = max(y)
 hmin = min(y)
-print(hmax, hmin)
-dist = x[-1] - x[0]
-print(dist)
-R = k * 6371e3
-dx = x[-1]/(len(x) - 1)
+print('h max, h min: ', hmax, hmin)
+dist = x[-1] - x[0] #[km]
+print('dist: ',dist)
+R = k * 6371 #[km]
 
-# dm 10%
+# dh 10% h max
 dh = int(0.1*hmax)
-print(dh)
+print('espaço entre curvas: ',dh)
+# número de arcos
+m = 1 + (hmax - hmin)/dh
+print('m: ', np.ceil(m))
+# incremento das curvas:
+dy = dh*np.arange(m) + hmin
+print('Alturas das curvas: ',dy)
+
+yaux = (-x**2 + x*dist)/(2*R*1e-3)
+curvas = np.zeros((dy.size, x.size))
+
+for i in range(dy.size): 
+    curvas[i, :] = yaux + dy[i] 
+
+print(curvas.shape)
+
+# alturas corrigidas [km]: 
+Y = (-x**2 + x*dist)/(2*R*1e-3) + y
+print(Y.shape)
+
+# linha de visada e fresnel:
+Lv = htx + Y[0] + x*(Y[-1] + hrx - Y[0] - htx)/dist
+# Lv1 =htx + y[0] + x*(y[-1] + hrx - y[0] - htx)/dist
+print(Lv.shape)
+
+fr1 = 17.3*np.sqrt(x*(dist - x)/(f*dist))
+
+fa = Lv + fr1
+fb = Lv - fr1
+
+# f1 = Lv1 + fr1
+# f2 = Lv1 - fr1
+
+#%%
+with plt.style.context('fast', True):
+    for i in range(dy.size):
+        mpl.rcParams['lines.linewidth'] = 0.75
+        plt.plot(x, curvas[i, :], 'xkcd:grey')
+    plt.grid(axis='x')
+    plt.xticks(np.arange(0, x[-1], 5))
+    plt.plot(x, Y)
+    plt.plot(x, Lv, 'k--')
+    plt.plot(x, fa, 'g-.')
+    plt.plot(x, fb, 'g-.')
+# n corrigido:
+    # plt.plot(x, f1, 'm-.')
+    # plt.plot(x, f2, 'm-.')
+    # plt.plot(x, Lv1, 'r--')
+    # plt.plot(x,y)
+    plt.savefig('perfil-test')
 
 #%%
